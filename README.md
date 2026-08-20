@@ -4,6 +4,15 @@ ROS2 机械臂控制系统，支持 Docker 容器化部署。
 
 **项目历史**：本代码库由 rxy 最初创建，随后 zzx 和 wt 基于原版进行改编，完成与 IsaacSim 仿真环境的适配，后续部署于地面六自由度平台进行实际测试验证。
 
+## 系统要求
+
+- Ubuntu 22.04+
+- ROS2 Humble
+- Docker & Docker Compose
+- 网络模式：`host`
+
+---
+
 ## ⚡ 快速开始
 
 ### 1. 下载项目
@@ -23,25 +32,14 @@ cd rflyarm
 # 一键启动（推荐）
 source ./docker-start.sh
 # 提示"是否需要编译代码？" → 按需选择 y/N
-# 菜单选择 1 - 重启服务 + 配置ROS2通信 + 新终端显示日志
+# 菜单选择 1 - 启动服务+当前终端配置ROS2+新终端显示日志
 
 # 发送末端位姿命令
 ros2 topic pub --once /target_ee_pose std_msgs/msg/Float64MultiArray \
   "{data: [400.0, 0.0, 400.0, 0.0, 0.0, 0.5]}"
 
-# 查看状态
+# 查看状态（建议进入control-test容器查看）
 ros2 topic echo /arm/joint_states
-```
-
----
-
-## 📚 系统架构
-
-```
-宿主机 ←→ Docker容器(host网络) ←→ CAN总线 ←→ 机械臂硬件
-  ↓           ↓
-ROS2 UDP    motor_controller_node
-通信        servo_controller_node
 ```
 
 ---
@@ -92,10 +90,10 @@ ros2 topic pub --once /target_ee_pose std_msgs/msg/Float64MultiArray \
 |------|----------------------|------|------|
 | joint_1 | 0 | +1 | 与电机坐标系相同 |
 | joint_2 | π/2 | +1 | 逻辑0对应电机 -π/2 |
-| joint_3 | -π | -1 | 含联动补偿 `in2+in1-π` |
+| joint_3 | 0 | -1 | 含联动补偿 `in2+in1-π` |
 | joint_4~6 | 0 | 各自配置 | 由舵机节点处理方向 |
 
-因此 **`position=[0,0,0,0,0,0]` 不是机械臂所有关节的硬件零位**，而是 IK 定义的初始逻辑姿态。若需直接按硬件角度控制电机，请使用 `/arm/joint_cmd`（见第3节）。对应硬件角度分别为joint_2-pi和joint_2+joint3-pi-(-pi)
+因此 **`position=[0,0,0,0,0,0]` 不是机械臂所有关节的硬件零位**，而是 IK 定义的初始逻辑姿态。若需直接按硬件角度控制电机，请使用 `/arm/joint_cmd`（见第3节）。
 
 **字段说明**:
 
@@ -104,7 +102,7 @@ ros2 topic pub --once /target_ee_pose std_msgs/msg/Float64MultiArray \
 | `name` | ✅ 必需 | 必须为 6 个关节名 |
 | `position` | ✅ 必需 | IK 逻辑关节角度，rad，需恰好 6 个 |
 | `velocity` | 可选 | 缺失或为0时下游节点使用各自默认值 |
-| `effort` | 可选 | **关节1~3（电机）：当前位置控制模式下忽略**；关节4~6（舵机）：加速度编码 0~254，缺失时舵机节点套用默认值 50 |
+| `effort` | 可选 | 关节1-3（电机）：当前多圈位置控制模式2下忽略；关节4-6（舵机）：加速度编码 0-254，缺失时舵机节点套用默认值 50 |
 
 ```bash
 # 通常由 manip_controller_node 自动发布，不建议手动发送
@@ -276,34 +274,12 @@ docker exec -it rflymanip_motor candump can0
                                              └──────────────────────────────────────┘
 ```
 
-## 🛠️ Docker 管理
-
-```bash
-# 启动容器并配置ROS2（推荐）
-source ./docker-start.sh
-# 菜单选项说明：
-#   1 - 重启服务 + 配置ROS2通信 + 新终端显示日志
-#   2 - 停止所有服务
-#   3 - 查看运行状态
-#   4 - 进入motor-test容器
-#   5 - 进入control-test容器
-
-# 进入容器
-docker exec -it rflymanip_motor bash
-
-# 停止容器
-docker compose down
-
-# 查看日志
-docker compose logs -f motor-test
-```
-
 ---
 
 ## 📂 项目结构
 
 ```
-rflycontrol/
+rflyarm/
 ├── docker-start.sh              # 容器启动 + ROS2配置
 ├── docker-compose.yml           # Docker配置
 ├── setup_host_ros2.sh          # 宿主机ROS2环境
@@ -319,58 +295,6 @@ rflycontrol/
     ├── src/manip_controller_node.cpp
     └── src/quintic_trajectory.cpp
 ```
-
----
-
-## ⚠️ 重要说明
-
-### 为什么需要 `source ./docker-start.sh`？
-
-Docker 容器的 mount namespace 隔离导致 FastRTPS 的共享内存传输无法跨容器边界工作。
-
-使用 `source` 启动会：
-- 在启动菜单前询问是否需要编译代码
-- 选择操作后自动启动 Docker 容器（选项1）
-- 配置 ROS2 使用 UDP 传输（绕过共享内存隔离）
-- 实现宿主机与容器的双向通信
-- 环境变量只影响当前终端
-
-### 单位说明
-
-| 接口 | 位置单位 | 速度单位 | 说明 |
-|------|---------|---------|------|
-| `/target_ee_pose` | mm, deg | - | 末端位姿控制 |
-| `/manip_cmd` | rad | rad/s | 六关节统一控制 |
-| `/arm/joint_cmd` | rad | rad/s | 电机关节（1、2、3）|
-| `/gripper/joint_cmd` | **rad** | **rad/s** | 舵机关节（4、5、6）|
-| `/arm/joint_states` | rad | rad/s | 电机状态反馈 |
-| `/gripper/joint_states` | **rad** | - | 舵机状态反馈 |
-
-**舵机速度转换**:
-- 内部编码范围: 0~3400
-- 转换系数: 1 编码单位 = 0.0015339808 rad/s
-- 例如: 1.5 rad/s 内部转为编码值 977
-
----
-
-## 系统要求
-
-- Ubuntu 22.04+
-- ROS2 Humble
-- Docker & Docker Compose
-- 网络模式：`host`
-
-## 移植说明
-
-```bash
-# 1. 克隆项目
-git clone <repository>
-
-# 2. 一键启动
-source ./docker-start.sh
-```
-
-无需修改全局配置，所有设置都在项目内。
 
 ---
 

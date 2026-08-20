@@ -8,7 +8,7 @@ services:
     ipc: host
     pid: host
     volumes:
-      - /home/zzx/rflycontrol/rflymanip_bridge:/workspace/rflymanip_bridge
+      - ./rflymanip_bridge:/workspace/rflymanip_bridge
       - /dev:/dev
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
@@ -30,7 +30,7 @@ services:
     ipc: host
     pid: host
     volumes:
-      - /home/zzx/rflycontrol/rflymanip_control:/workspace/rflymanip_control
+      - ./rflymanip_control:/workspace/rflymanip_control
     environment:
       - DISPLAY=${DISPLAY}
       - ROS_DOMAIN_ID=0

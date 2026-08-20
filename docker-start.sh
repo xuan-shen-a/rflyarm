@@ -159,7 +159,7 @@ case $choice in
             echo "  source ./docker-start.sh"
             echo ""
             echo "或手动配置环境:"
-            echo "  source ~/rflycontrol/setup_host_ros2.sh"
+            echo "  source ./setup_host_ros2.sh"
         fi
         echo ""
         echo "其他操作:"
