@@ -1,10 +1,23 @@
-# RFly Control
+# RFly Arm
 
 ROS2 机械臂控制系统，支持 Docker 容器化部署。
 
 **项目历史**：本代码库由 rxy 最初创建，随后 zzx 和 wt 基于原版进行改编，完成与 IsaacSim 仿真环境的适配，后续部署于地面六自由度平台进行实际测试验证。
 
 ## ⚡ 快速开始
+
+### 1. 下载项目
+
+```bash
+# 安装 Git LFS（用于下载 Docker 镜像）
+sudo apt-get install git-lfs
+
+# 克隆项目
+git clone https://github.com/xuan-shen-a/rflyarm.git
+cd rflyarm
+```
+
+### 2. 启动系统
 
 ```bash
 # 一键启动（推荐）
