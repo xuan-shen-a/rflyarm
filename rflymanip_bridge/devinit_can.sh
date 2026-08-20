@@ -46,4 +46,4 @@ setup_can_interface() {
 setup_can_interface can0
 echo "CAN通信检查完毕, 启动ROS2节点"
 
-./start_brige.sh
+./start_bridge.sh

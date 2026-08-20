@@ -289,7 +289,7 @@ rflyarm/
 ├── rflymanip_bridge/                    # 硬件桥接层：电机 + 舵机驱动
 │   ├── README.md                        # 详细接口文档 ⭐
 │   ├── devinit_can.sh                   # CAN接口初始化（1 Mbit/s）
-│   ├── start_brige.sh                   # 容器内编译 + SocketCAN + 节点启动
+│   ├── start_bridge.sh                  # 容器内编译 + SocketCAN + 节点启动
 │   ├── scripts/                         # 夹爪监控与转换测试脚本
 │   ├── test/                            # 驱动、联动逻辑测试
 │   └── src/rflymanip_bridge/
