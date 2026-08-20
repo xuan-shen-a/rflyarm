@@ -280,21 +280,34 @@ docker exec -it rflymanip_motor candump can0
 
 ```
 rflyarm/
-├── docker-start.sh              # 容器启动 + ROS2配置
-├── docker-compose.yml           # Docker配置
-├── setup_host_ros2.sh          # 宿主机ROS2环境
+├── docker-start.sh                      # 一键启动：编译 + 容器 + ROS2通信配置
+├── docker-compose.yml                   # 服务定义：rflymanip_motor / rflymanip_control
+├── setup_host_ros2.sh                   # 宿主机ROS2环境（UDP传输）
+├── can.pdf                              # 电机CAN协议手册
 ├── config/
-│   └── fastdds_udp_only.xml    # FastDDS配置
-├── rflymanip_bridge/           # 机械臂控制
-│   ├── src/                    # 源代码
-│   ├── README.md               # 详细接口文档 ⭐
-│   ├── MOTOR_CONTROL_UPGRADE.md      # 电机控制升级
-│   ├── GRIPPER_INTERFACE_UPGRADE.md  # Gripper接口升级
-│   └── FINAL_REPORT.md               # 完整升级报告
-└── rflymanip_control/          # 轨迹规划
-    ├── src/manip_controller_node.cpp
-    └── src/quintic_trajectory.cpp
+│   └── fastdds_udp_only.xml             # FastDDS仅UDP配置
+├── rflymanip_bridge/                    # 硬件桥接层：电机 + 舵机驱动
+│   ├── README.md                        # 详细接口文档 ⭐
+│   ├── devinit_can.sh                   # CAN接口初始化（1 Mbit/s）
+│   ├── start_brige.sh                   # 容器内编译 + SocketCAN + 节点启动
+│   ├── scripts/                         # 夹爪监控与转换测试脚本
+│   ├── test/                            # 驱动、联动逻辑测试
+│   └── src/rflymanip_bridge/
+│       ├── src/                         # lkmotor_driver, motor_controller_node, manip_logic_node
+│       ├── include/rflymanip_bridge/     # 对应头文件
+│       ├── launch/                      # motor_controller.launch.py
+│       ├── servo_controller_node.py     # 舵机控制节点
+│       └── servo_sdk/                   # HX-30-HM 舵机协议SDK
+├── rflymanip_control/                   # 运动学求解与轨迹规划
+│   ├── README.md
+│   └── src/rflymanip_control/
+│       ├── src/                         # ik_node, ik_solver, manip_controller_node,
+│       │                                # quintic_trajectory, path_planning, road.py
+│       └── include/rflymanip_control/    # 对应头文件
+└── rflymanip_demo/                      # 演示用OCI镜像归档（Git LFS）
 ```
+
+> `build/`、`install/`、`log/` 为编译产物，已在 `.gitignore` 中排除。
 
 ---
 
