@@ -1,0 +1,31 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+
+# Compiled
+*.o
+*.so
+*.a
+
+# Temporary files
+*~
+.*.swp
+*.bak
+
+# System
+.DS_Store
+Thumbs.db
+
+# Docker images
+rflymanip_demo/

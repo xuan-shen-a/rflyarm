@@ -1,0 +1,43 @@
+services:
+  # motor-test容器 - 用于rflymanip_bridge
+  motor-test:
+    image: motor-test:fixed
+    container_name: rflymanip_motor
+    privileged: true
+    network_mode: host
+    ipc: host
+    pid: host
+    volumes:
+      - /home/zzx/rflycontrol/rflymanip_bridge:/workspace/rflymanip_bridge
+      - /dev:/dev
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
+    working_dir: /workspace/rflymanip_bridge
+    command: bash -c "source /opt/ros/humble/setup.bash && ./devinit_can.sh"
+    stdin_open: true
+    tty: true
+
+  # control-test容器 - 用于rflymanip_control（交互式开发）
+  control-test:
+    image: control_test:Demo
+    container_name: rflymanip_control
+    privileged: true
+    network_mode: host
+    ipc: host
+    pid: host
+    volumes:
+      - /home/zzx/rflycontrol/rflymanip_control:/workspace/rflymanip_control
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
+    working_dir: /workspace/rflymanip_control
+    command: bash -c "source /opt/ros/humble/setup.bash && colcon build && source install/setup.bash && echo '✓ rflymanip_control编译完成' && echo '🚀 启动ik_node节点...' && ros2 run rflymanip_control ik_node"
+    depends_on:
+      - motor-test
+    stdin_open: true
+    tty: true
