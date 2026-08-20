@@ -26,6 +26,3 @@ __pycache__/
 # System
 .DS_Store
 Thumbs.db
-
-# Docker images
-rflymanip_demo/
