@@ -51,6 +51,7 @@ if [[ "$compile_choice" =~ ^[Yy]$ ]]; then
 
     echo "🔨 编译 rflymanip_bridge..."
     docker exec rflymanip_motor bash -c "
+        source /opt/ros/humble/setup.bash &&
         cd /workspace/rflymanip_bridge &&
         colcon build --packages-select rflymanip_bridge
     "
@@ -60,6 +61,7 @@ if [[ "$compile_choice" =~ ^[Yy]$ ]]; then
 
     echo "🔨 编译 rflymanip_control..."
     docker exec rflymanip_control bash -c "
+        source /opt/ros/humble/setup.bash &&
         cd /workspace/rflymanip_control &&
         colcon build
     "

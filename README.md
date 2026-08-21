@@ -10,6 +10,11 @@ ROS2 机械臂控制系统，支持 Docker 容器化部署。
 - ROS2 Humble
 - Docker & Docker Compose
 - 网络模式：`host`
+- **用户需加入 `docker` 组**（避免 `permission denied` 错误）：
+  ```bash
+  sudo usermod -aG docker $USER
+  newgrp docker  # 或重新登录使组生效
+  ```
 
 ---
 
@@ -26,7 +31,33 @@ git clone https://github.com/xuan-shen-a/rflyarm.git
 cd rflyarm
 ```
 
-### 2. 启动系统
+### 2. 加载 Docker 镜像
+
+镜像以 OCI 格式归档在 `rflymanip_demo/` 目录中，通过 Git LFS 存储。克隆后执行以下步骤将其导入本地 Docker：
+
+```bash
+# 确保 Git LFS 文件已完整下载（如克隆时已启用 LFS 则已自动完成）
+git lfs pull
+
+# 将 OCI 归档目录打包并加载进 Docker
+cd rflymanip_demo
+tar -cf - . | docker load
+cd ..
+
+# 验证镜像已加载
+docker images | grep -E "motor-test|control_test"
+```
+
+应看到 `docker-compose.yml` 所需的两个镜像：
+
+| 镜像 | 用途 |
+|---|---|
+| `motor-test:fixed` | 电机与舵机桥接节点 |
+| `control_test:Demo` | 控制与规划节点 |
+
+镜像可直接使用，无需额外构建或打标签。`motor-test:fixed` 已预装 `python3-serial`，舵机 SDK 的 `servo_sdk/port_handler.py` 依赖它驱动 joint_4~6。
+
+### 3. 启动系统
 
 ```bash
 # 一键启动（推荐）
@@ -308,6 +339,34 @@ rflyarm/
 ```
 
 > `build/`、`install/`、`log/` 为编译产物，已在 `.gitignore` 中排除。
+
+---
+
+## ⚠️ 常见问题
+
+### 编译报错 `Could not find ... "ament_cmake"`
+
+**原因**：`docker exec` 不会自动执行镜像的 entrypoint 脚本，不会 source ROS2 环境，导致 `CMAKE_PREFIX_PATH` 缺失 `/opt/ros/humble`。
+
+**解决**：`docker-start.sh` 已修复（在编译命令前显式 `source /opt/ros/humble/setup.bash`）。如手动编译，请确保：
+
+```bash
+# 错误示例（缺少 source）
+docker exec rflymanip_motor bash -c "cd /workspace/rflymanip_bridge && colcon build"
+
+# 正确示例（先 source ROS2）
+docker exec rflymanip_motor bash -c "source /opt/ros/humble/setup.bash && cd /workspace/rflymanip_bridge && colcon build"
+```
+
+### Docker 权限报错 `permission denied while trying to connect to the Docker daemon socket`
+
+**原因**：当前用户不在 `docker` 组中。
+
+**解决**：
+```bash
+sudo usermod -aG docker $USER
+newgrp docker  # 或注销重新登录
+```
 
 ---
 
