@@ -16,15 +16,6 @@ Last Update: 2026/08/13
 
 Gripper舵机接口已从原始编码值升级为 **角度（度）** 单位。
 
-- 📄 详细说明: [GRIPPER_INTERFACE_UPGRADE.md](GRIPPER_INTERFACE_UPGRADE.md)
-- 📝 升级总结: [GRIPPER_UPGRADE_SUMMARY.md](GRIPPER_UPGRADE_SUMMARY.md)
-- 🧪 交互式测试: `./scripts/gripper_tester.py`
-- ✅ 转换验证: `./scripts/test_gripper_conversion.py`
-
-### 综合报告
-
-- 📊 完整报告: [FINAL_REPORT.md](FINAL_REPORT.md)
-
 ---
 
 ## 🤖 机械臂控制指令
